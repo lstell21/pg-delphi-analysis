@@ -138,5 +138,8 @@ screen was validated. Everything downstream of them is deterministic.
 
 Code here is MIT, see [LICENSE](LICENSE). The data deposit is CC BY-SA 4.0 except
 for passages quoted from the screened publications, which its own README explains.
-Cite the paper for the findings and the Zenodo DOI for the code or data, see
-[CITATION.cff](CITATION.cff).
+
+This repository is archived at [10.5281/zenodo.22233245](https://doi.org/10.5281/zenodo.22233245), which is
+the version that produced the published results. Cite the paper for the findings,
+this DOI for the code, and [10.5281/zenodo.22232256](https://doi.org/10.5281/zenodo.22232256) for the data.
+See [CITATION.cff](CITATION.cff).

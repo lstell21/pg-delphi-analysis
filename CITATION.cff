@@ -6,6 +6,14 @@ message: >-
 type: software
 license: MIT
 repository-code: "https://github.com/lstell21/pg-delphi-analysis"
+doi: 10.5281/zenodo.22233245
+identifiers:
+  - type: doi
+    value: 10.5281/zenodo.22233245
+    description: Archived version of this software
+  - type: doi
+    value: 10.5281/zenodo.22232256
+    description: The data this software reads
 abstract: >-
   Analysis code for an expert Delphi study on infectious disease
   modelling for pandemic preparedness. Computes the consensus
