@@ -1,0 +1,33 @@
+cff-version: 1.2.0
+title: "Pandemic guidelines: Delphi analysis and review synthesis"
+message: >-
+  If you use this software, cite the paper it belongs to. Cite this
+  record for the software itself.
+type: software
+license: MIT
+repository-code: "https://github.com/lstell21/pg-delphi-analysis"
+abstract: >-
+  Analysis code for an expert Delphi study on infectious disease
+  modelling for pandemic preparedness. Computes the consensus
+  statistics, derives theme coverage over the reviewed literature,
+  and builds every table and figure in the paper.
+keywords:
+  - Delphi study
+  - infectious disease modelling
+  - pandemic preparedness
+  - consensus methods
+  - systematic review
+authors:
+  - family-names: Stellbrink
+    given-names: Leonard
+    affiliation: University of Luebeck
+    email: leonard.stellbrink@uni-luebeck.de
+preferred-citation:
+  type: article
+  title: >-
+    Preparing for the Next Pandemic Takes More Than Better Models:
+    Expert Consensus Recommendations for Infectious Disease Modelling
+  authors:
+    - family-names: Stellbrink
+      given-names: Leonard
+  # TODO: complete author list, journal, year, volume, and DOI on acceptance

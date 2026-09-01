@@ -1,0 +1,5 @@
+# Versions the published results were produced with (Python 3.14.7, Windows).
+# The whole pipeline is deterministic and offline. Nothing here reaches a
+# network, and no API key is needed.
+numpy==2.4.6
+matplotlib==3.10.9

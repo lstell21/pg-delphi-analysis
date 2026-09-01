@@ -1,0 +1,17 @@
+# Secrets
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+venv/
+.venv/
+
+# Data comes from the Zenodo deposit, not from git. Unpack it here.
+data/
+
+# Generated output. Rebuilt by the pipeline, so it is not tracked.
+tables/*
+figures/*
+!tables/.gitkeep
+!figures/.gitkeep
