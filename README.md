@@ -11,8 +11,8 @@ consensus statistics, the theme coverage, and every table and figure.
 
 | Component | Contents | Location |
 | --- | --- | --- |
-| **This repository** | Delphi analysis, theme codebook, table and figure builders | you are here |
-| **Screening instrument** | LLM full-text screening against the five inclusion criteria | https://github.com/hnunner/pg-literature-screening |
+| **This repository** | Delphi analysis, theme codebook, table and figure builders | [10.5281/zenodo.22233245](https://doi.org/10.5281/zenodo.22233245) |
+| **Screening instrument** | LLM full-text screening against the five inclusion criteria | [github.com/hnunner/pg-literature-screening](https://github.com/hnunner/pg-literature-screening) |
 | **Data deposit** | Round 4 survey data, screening export, hand labels | [10.5281/zenodo.22232256](https://doi.org/10.5281/zenodo.22232256) |
 
 ## Getting the data
