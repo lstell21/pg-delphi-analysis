@@ -6,11 +6,14 @@ message: >-
 type: software
 license: MIT
 repository-code: "https://github.com/lstell21/pg-delphi-analysis"
-doi: 10.5281/zenodo.22233245
+doi: 10.5281/zenodo.22233244
 identifiers:
   - type: doi
-    value: 10.5281/zenodo.22233245
-    description: Archived version of this software
+    value: 10.5281/zenodo.22233244
+    description: All versions of this software
+  - type: doi
+    value: 10.5281/zenodo.22251507
+    description: The version that produced the published results
   - type: doi
     value: 10.5281/zenodo.22232256
     description: The data this software reads

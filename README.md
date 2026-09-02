@@ -11,7 +11,7 @@ consensus statistics, the theme coverage, and every table and figure.
 
 | Component | Contents | Location |
 | --- | --- | --- |
-| **This repository** | Delphi analysis, theme codebook, table and figure builders | [10.5281/zenodo.22233245](https://doi.org/10.5281/zenodo.22233245) |
+| **This repository** | Delphi analysis, theme codebook, table and figure builders | [10.5281/zenodo.22251507](https://doi.org/10.5281/zenodo.22251507) |
 | **Screening instrument** | LLM full-text screening against the five inclusion criteria | [github.com/hnunner/pg-literature-screening](https://github.com/hnunner/pg-literature-screening) |
 | **Data deposit** | Round 4 survey data, screening export, hand labels | [10.5281/zenodo.22232256](https://doi.org/10.5281/zenodo.22232256) |
 
@@ -139,7 +139,8 @@ screen was validated. Everything downstream of them is deterministic.
 Code here is MIT, see [LICENSE](LICENSE). The data deposit is CC BY-SA 4.0 except
 for passages quoted from the screened publications, which its own README explains.
 
-This repository is archived at [10.5281/zenodo.22233245](https://doi.org/10.5281/zenodo.22233245), which is
-the version that produced the published results. Cite the paper for the findings,
+This repository is archived at [10.5281/zenodo.22251507](https://doi.org/10.5281/zenodo.22251507), which is
+the version that produced the published results. [10.5281/zenodo.22233244](https://doi.org/10.5281/zenodo.22233244)
+always resolves to the newest release. Cite the paper for the findings,
 this DOI for the code, and [10.5281/zenodo.22232256](https://doi.org/10.5281/zenodo.22232256) for the data.
 See [CITATION.cff](CITATION.cff).
