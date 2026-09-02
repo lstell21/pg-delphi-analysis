@@ -157,10 +157,21 @@ def build_panel_table(submissions, groups=None, label="tab:panel_characteristics
     # -- a clean, duplicate-free denominator. Per the pre-registration, partial
     # responses are still included per statement in the consensus statistics
     # (where the per-statement n is reported), but they are not characterised here.
-    completers = [s for s in submissions if s.get("complete", True)]
-    total = len(completers)
-    counts = {field: Counter(s["demographics"].get(field) for s in completers)
-              for _, field, _ in groups}
+    # The deposit carries marginal counts, not per-panellist demographics.
+    # Over the seven fields below, 23 of 62 respondents had a profile no one
+    # else shared; pairing that with their ratings and free text is what the
+    # deposit avoids. The counts are identical either way, and the generated
+    # table is byte-identical. See the deposit README.
+    import csv as _csv
+    _path = PROJECT_ROOT / "data" / "delphi" / "round4_panel_characteristics.csv"
+    if not _path.exists():
+        raise SystemExit(f"{_path} not found; it ships with the data deposit")
+    _counts, total = {}, 0
+    with _path.open(encoding="utf-8-sig", newline="") as _fh:
+        for _row in _csv.DictReader(_fh):
+            total = int(_row["completers"])
+            _counts.setdefault(_row["field"], Counter())[_row["category"] or None] = int(_row["n"])
+    counts = {field: _counts.get(field, Counter()) for _, field, _ in groups}
 
     # Type size and column type differ between the two variants, and both used to
     # be hand-applied to the generated file after every run, under a "re-apply

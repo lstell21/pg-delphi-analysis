@@ -301,7 +301,7 @@ def build_studies_table(recs: list) -> str:
 \caption{\textbf{Publications included in the systematic review.} The %d
 publications included, with the
 publication type recorded during screening and the themes the term-based
-codebook (\protect\hyperref[sec:app:coding]{Supplementary Note 16}) assigns from the extracted challenge and
+codebook (\protect\hyperref[sec:app:coding]{Supplementary Note~17}) assigns from the extracted challenge and
 recommendation text. Themes are not mutually exclusive. A dash means the
 codebook matched no theme term, not that the publication addresses none.}
 \label{tab:included_studies}\\

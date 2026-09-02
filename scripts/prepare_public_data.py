@@ -122,8 +122,8 @@ def main() -> None:
                 f"From `{rel}`, copied unchanged. Nothing removed.", ""]
         findings += [(dst, h) for h in scan(dst)]
 
-    args.out.mkdir(parents=True, exist_ok=True)
-    (args.out / "REMOVED.md").write_text("\n".join(log), encoding="utf-8")
+    (args.out / "literature").mkdir(parents=True, exist_ok=True)
+    (args.out / "literature" / "REMOVED.md").write_text("\n".join(log), encoding="utf-8")
 
     if findings:
         print("\nREVIEW THESE BEFORE PUBLISHING:")
