@@ -10,7 +10,7 @@ stored Round 3 rating distributions (READ-ONLY) via the R3->R4 crosswalk
   * movement toward / away from / unchanged consensus,
   * the stable non-consensus set (non-consensus in BOTH rounds).
 
-Outputs data/analysis/round-4/round3_vs_round4.json and .csv, and prints the
+Outputs data/generated/round3_vs_round4.json and .csv, and prints the
 crosswalk with both rounds' figures for sign-off.
 
 This is the only step that reads a Round 3 artifact, and it opens it read-only.

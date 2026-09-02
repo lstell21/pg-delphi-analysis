@@ -21,7 +21,7 @@ The panel did express importance directly, but in a separate instrument: the
 Section E ranking task, in which panelists ranked seven preparedness measures
 across three phases (see ``r4_statements.py``). Those seven do not map one to
 one onto these ten, so the ranking task is reported in the caption and, in
-full, in Supplementary Table 5 of Supplementary Note 4 rather than used to
+full, in Supplementary Table 6 of Supplementary Note 7 rather than used to
 order this table.
 
 Priorities are therefore listed alphabetically within each group, and the
@@ -190,12 +190,13 @@ CAPTION = (
     # Raw string: a plain "\textbf" would put a literal tab in the caption,
     # which pdflatex swallows silently and prints "extbf{...}".
     #
-    # "Supplementary Table~5" is written out rather than \ref'd on purpose. The
+    # "Supplementary Table~6" is written out rather than \ref'd on purpose. The
     # Supplementary Information is a separate LaTeX document (SI_main.tex), so
     # its labels are not in this document's .aux and a \ref would typeset "??".
     # Every other cross-document pointer in the manuscript is spelled out the
-    # same way. Table 5 is tab:rankings; the Supplementary Information is
-    # ordered by first citation, so renumber here if that order changes.
+    # same way. tab:rankings is Table 6: it is the sixth table environment in
+    # SI_notes.tex, after tab:revision_mapping, which is Table 5. Renumber here
+    # if a table is added or moved before it.
     r"\textbf{Ten priorities for the inter-pandemic period.} Priorities "
     "synthesised from the consensus recommendations and the review, grouped by "
     "what each demands and listed alphabetically within each group. The panel "
@@ -203,7 +204,7 @@ CAPTION = (
     "here implies any: agreement is not importance, since a statement can "
     "command consensus yet matter little for preparedness. The panel did rank "
     "seven preparedness measures across three phases, and those do not "
-    "correspond one to one with these ten (Supplementary Table~5). "
+    "correspond one to one with these ten (Supplementary Table~6). "
     "``Must act'' uses M, A, and P as in Table~\\ref{tab:recommendations_main}, "
     "and is the union of the parties named for the supporting statements. It "
     "is our judgement rather than the panel\'s. Every priority requires "

@@ -10,7 +10,7 @@ For each phase and item this reports the first-choice count, mean rank (lower =
 more preferred), and Borda score (rank 1 -> 7 points ... rank 7 -> 1 point),
 and orders the items by mean rank.
 
-Outputs data/analysis/round-4/rankings.json.
+Outputs data/generated/rankings.json.
 """
 import json
 import sys
