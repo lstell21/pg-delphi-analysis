@@ -355,7 +355,7 @@ def build_table(counts, n) -> str:
          rf"\caption{{\textbf{{Theme coverage across the reviewed literature.}} Coverage of "rf"the eight themes across the {n} included publications. A "
          rf"publication counts as addressing a theme where the challenge and recommendation "
          rf"text extracted from it matches a term from that theme's list, given in "
-         rf"\protect\hyperref[sec:app:coding]{{Supplementary Note~17}}. Themes are not mutually exclusive, so shares sum "
+         rf"\protect\hyperref[sec:app:coding]{{Supplementary Note~18}}. Themes are not mutually exclusive, so shares sum "
          rf"to more than 100.}}"
          r"\label{tab:theme_summary}",
          r"\begingroup\small",
