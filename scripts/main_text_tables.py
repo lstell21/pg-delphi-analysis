@@ -126,7 +126,13 @@ SAFE_EXTRA = "–—‘’“”"
 #     whichever form a fresh export delivers.
 #   Espinosa et al. (2024) carries a bracketed Spanish title whose spaces the
 #     export dropped. Restored word for word; no wording is changed.
+#   Erzen et al. (2020) arrives shouted in full capitals and with "have" typed
+#     twice. Restored to the title as published; no wording is changed beyond
+#     the stutter.
 TITLE_FIXES = [
+    (re.compile(r"KEY CHALLENGES IN MODELLING AN EPIDEMIC.*?SO FAR", re.S),
+     "Key challenges in modelling an epidemic - What have we learned "
+     "from the COVID-19 epidemic so far."),
     (re.compile(r"(role of uncertainty is)(?:\u0142dots|\u2026|\.\.\.)(uncertain)",
                 re.I),
      r"\1\\ldots{}\2"),
@@ -254,14 +260,15 @@ def build_recommendations_table(statements: dict, stats: dict, endorse: dict) ->
 \begin{longtable}{@{}l >{\raggedright\arraybackslash}p{0.43\textwidth} l c c c c@{}}
 \caption{\textbf{The 40 consensus recommendations.} Statements appear in the
 wording the panel rated, which keeps US spelling. Must act is our judgement, not
-the panel's: M modelling groups, A public health agencies, including funders and
-providers of national data infrastructure, P policy advisors (Supplementary
-Note~10). Ratings run from 1 (strongly disagree) to 6 (strongly agree), and all
-40 met the consensus criterion of IQR~$\leq$~1. The top-two share is the
+the panel's: M modelling groups; A public health agencies, including funders
+and providers of national data infrastructure; P policy advisors (Supplementary
+Note~10). Ratings run from 1 (completely disagree) to 6 (completely agree), and
+all 40 met the consensus criterion of IQR~$\leq$~1. The top-two share is the
 percentage of raters choosing 5 or 6, which still separates statements once the
-median saturates. $n$ varies because partial responses were retained and panellists
-could abstain. Supplementary Tables~4 and~5 give the Round~3 comparison and a
-completers-only reanalysis.}
+median saturates. FAIR4RS, in B02, extends the FAIR principles to research
+software. $n$ varies because partial responses were retained and panellists could
+answer ``Not qualified to respond'' on any statement. Supplementary Tables~4
+and~5 give the Round~3 comparison and a completers-only reanalysis.}
 \label{tab:recommendations_main}\\
 \toprule
 %s
@@ -296,20 +303,60 @@ THEME_SHORT = {
 }
 
 
+# Trailing initials in the comma-free convention: one to three capitals, with
+# or without stops or a hyphen ("MD", "E.A.", "S-L"). Anchored, so a genuine
+# all-capital surname of four or more letters is left alone.
+_INITIALS = re.compile(r"^[A-Z](?:[.\-]?[A-Z]){0,2}\.?$")
+
+
 def first_author(raw: str) -> str:
     """First author's surname, plus "et al." where there are co-authors.
 
     The export mixes two conventions, so the comma decides which end of the
     first name holds the surname: "Cori, A; Kucharski, A" puts it before the
     comma, "Gawande MS; Zade N" puts it first.
+
+    In the comma-free form the surname is everything before the initials, not
+    the first whitespace-delimited token. Taking the first token truncated
+    every compound surname in the corpus -- "De Angelis D" became "De", "Van
+    Kerkhove MD" became "Van", and so did Le Rutte, van Elsland, and Sarmiento
+    Varon -- which a reviewer caught in the typeset table. Stripping the
+    trailing initials instead keeps the particle attached.
     """
     raw = (raw or "").strip()
     if not raw:
         return "Anon."
     parts = [p.strip() for p in raw.split(";") if p.strip()]
     head = parts[0]
-    surname = head.split(",")[0].strip() if "," in head else head.split()[0].strip()
+    if "," in head:
+        surname = head.split(",")[0].strip()
+    else:
+        toks = head.split()
+        while len(toks) > 1 and _INITIALS.match(toks[-1]):
+            toks.pop()
+        surname = " ".join(toks).strip()
     return surname + (" et al." if len(parts) > 1 else "")
+
+
+def disambiguate_years(rows: list) -> list:
+    """Suffix a/b/c onto years shared by one first author.
+
+    Two different Espinosa et al. papers both carry 2024, which reads as a
+    duplicated row. Applied after sorting, so the letters run in table order.
+    """
+    counts = {}
+    for author, year in rows:
+        counts[(author, year)] = counts.get((author, year), 0) + 1
+    seen = {}
+    out = []
+    for author, year in rows:
+        key = (author, year)
+        if counts[key] > 1 and year != "n.d.":
+            seen[key] = seen.get(key, 0) + 1
+            out.append(year + chr(ord("a") + seen[key] - 1))
+        else:
+            out.append(year)
+    return out
 
 
 def breakable_slash(cell: str) -> str:
@@ -324,13 +371,18 @@ def breakable_slash(cell: str) -> str:
 
 
 def build_studies_table(recs: list) -> str:
+    ordered = sorted(recs, key=lambda r: (first_author(r.get("Author", "")).lower(),
+                                          r.get("Publication Year", "")))
+    authors = [first_author(r.get("Author", "")) for r in ordered]
+    years = [(r.get("Publication Year") or "").strip() or "n.d." for r in ordered]
+    years = disambiguate_years(list(zip(authors, years)))
+
     rows = []
-    for rec in sorted(recs, key=lambda r: (first_author(r.get("Author", "")).lower(),
-                                           r.get("Publication Year", ""))):
+    for rec, author, year in zip(ordered, authors, years):
         themes = [THEME_SHORT.get(k, k) for k in lts.assign(rec)]
         rows.append(r"%s & %s & %s & %s & %s \\" % (
-            tex_escape(first_author(rec.get("Author", ""))),
-            tex_escape((rec.get("Publication Year") or "").strip() or "n.d."),
+            tex_escape(author),
+            tex_escape(year),
             fix_title(tex_escape((rec.get("Title") or "").strip())),
             breakable_slash(tex_escape((rec.get("Type") or "").strip() or "--")),
             tex_escape(", ".join(sorted(themes)) or "--"),

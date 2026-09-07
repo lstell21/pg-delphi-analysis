@@ -87,7 +87,7 @@ def stacked_cy(height, gap, n, bottom):
 
 ROUNDS = [
     dict(title='Round 1: Internal feedback',
-         subtitle='Core research team',
+         subtitle='infoXpand consortium group',
          invited='Invited 6',
          responded='Responded 6 (100%)',
          split='First-time respondents 6',
@@ -122,7 +122,7 @@ ROUNDS = [
 
 # Labels on the arrows between rounds: what carries over, and why.
 TRANSITIONS = [
-    'Core team not invited to Round 2',
+    'Round 1 group not invited to Round 2',
     'All 5 retained, plus 1 returning from Round 1',
     'Anonymous survey: responses cannot be linked',
 ]

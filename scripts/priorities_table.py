@@ -107,7 +107,7 @@ PRIORITY_GROUPS = [
         ("Model-selection guidance (fitness for purpose)",
          ["A01", "A04"], "model design and complexity"),
         ("Protocols for multi-model ensembles",
-         ["A03", "C02"], "structural-uncertainty quantification"),
+         ["A03", "C02"], "quantification of structural uncertainty"),
         ("Standardised uncertainty communication",
          ["C01", "C02", "C09", "C10"], "uncertainty quantification and communication"),
         ("Transparent, reproducible model reporting",
@@ -115,11 +115,11 @@ PRIORITY_GROUPS = [
     ]),
     ("Governance, cooperation, and ethics", [
         ("Global cooperation and equity-sensitive models",
-         ["D02", "D07", "D08", "B08"], "capacity building and global equity"),
+         ["B08", "D02", "D07", "D08"], "capacity building and global equity"),
         ("Pre-established science-policy structures",
          ["A12", "D01"], "science-policy interface"),
         ("Rapid ethical governance frameworks",
-         ["D05", "D06", "B08"], "collaboration, interdisciplinarity, and ethics"),
+         ["B08", "D05", "D06"], "collaboration, interdisciplinarity, and ethics"),
     ]),
 ]
 
@@ -209,7 +209,8 @@ CAPTION = (
     "and is the union of the parties named for the supporting statements. It "
     "is our judgement rather than the panel\'s. Every priority requires "
     "modelling groups to act, but only two of the ten can be delivered by a "
-    "modelling group alone."
+    "modelling group alone. A statement can support more than one priority: "
+    "C02 and B08 each appear in two rows."
 )
 
 

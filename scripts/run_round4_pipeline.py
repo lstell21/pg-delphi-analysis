@@ -13,7 +13,8 @@ Stages:
   2. consensus statistics            -> data/generated/
   3. Round 3 vs Round 4 comparison   -> data/generated/   (reads R3 read-only)
   4. Section E rankings              -> data/generated/
-  5. LaTeX tables + figure           -> tables/, figures/
+  5. completers-only sensitivity     -> data/generated/, tables/
+  6. LaTeX tables + figure           -> tables/, figures/
 
 Usage:
   python scripts/run_round4_pipeline.py
@@ -31,6 +32,7 @@ import r4_extract_from_csv
 import r4_consensus_stats
 import r4_round_comparison
 import r4_rankings
+import r4_sensitivity
 import r4_latex_tables
 
 
@@ -53,7 +55,10 @@ def run():
     banner(4, "Section E rankings")
     r4_rankings.main()
 
-    banner(5, "LaTeX tables + figure")
+    banner(5, "Completers-only sensitivity")
+    r4_sensitivity.main()
+
+    banner(6, "LaTeX tables + figure")
     r4_latex_tables.main()
 
     print("\n" + "=" * 70)

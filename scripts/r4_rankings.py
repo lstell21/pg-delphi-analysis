@@ -49,6 +49,11 @@ def aggregate_phase(submissions: list, phase: str) -> dict:
     for item, text in E_ITEMS.items():
         ranks = np.array(rank_lists[item], dtype=float)
         mean_rank = round(float(np.mean(ranks)), 3) if len(ranks) else None
+        # Dispersion of the ranks a measure received. A mean rank alone cannot
+        # distinguish a measure everyone placed mid-table from one the panel
+        # split over, which matters most where the means sit close together.
+        iqr = (round(float(np.percentile(ranks, 75) - np.percentile(ranks, 25)), 2)
+               if len(ranks) else None)
         # Borda: rank r -> (N_ITEMS + 1 - r) points.
         borda = int(np.sum(N_ITEMS + 1 - ranks)) if len(ranks) else 0
         items.append({
@@ -57,6 +62,7 @@ def aggregate_phase(submissions: list, phase: str) -> dict:
             "first_choice": first_choice[item],
             "n_ranked": len(ranks),
             "mean_rank": mean_rank,
+            "iqr": iqr,
             "borda": borda,
         })
 

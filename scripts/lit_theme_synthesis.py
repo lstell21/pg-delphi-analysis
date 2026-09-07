@@ -113,10 +113,12 @@ THEMES = [
     ]),
     ("model_dev", "Model development and methodological improvement", [
         # "model structure" is deliberately absent: it matched "decision-makers unable
-        # to decipher model structure", which is transparency.
+        # to decipher model structure", which is transparency. \bIBM\b is absent for
+        # the opposite reason: as a published term it reads as the company, and its one
+        # corpus hit is a paper that matches this theme on three other terms anyway.
         ("model choice", [r"model complexity", r"model selection", r"hybrid model",
                           r"agent-?based", r"compartmental", r"individual-?based",
-                          r"\bIBM\b", r"machine learning", r"fit for purpose",
+                          r"machine learning", r"fit for purpose",
                           r"choice of model", r"homogeneous mixing",
                           r"oversimplified assumption", r"structural model"]),
         # Fitting and estimation. `parameteri[sz]` required an "e" and so missed
@@ -188,6 +190,21 @@ def tex_escape(s: str) -> str:
     return s
 
 
+# Two patterns render wrongly under the generic rules below, so their display
+# form is stated here instead. The regex is still what runs; only the printed
+# rendering changes.
+#
+#   code (and|/)\\s?documentation  had a literal "/" inside an alternation, which
+#     the slash-joining rule turned into "code and / / documentation".
+#   global (south|equity)         became "global south / equity", which reads as
+#     an alternation with bare "equity" -- itself a separate term in the same
+#     list -- rather than as "global south" or "global equity".
+TERM_DISPLAY = {
+    r"code (and|/)\s?documentation": "code and/or documentation",
+    r"global (south|equity)": "global south / global equity",
+}
+
+
 def readable_term(pattern: str) -> str:
     """Render a codebook regex as something a reader can check.
 
@@ -197,6 +214,9 @@ def readable_term(pattern: str) -> str:
     "any characters" gap becomes an ellipsis meaning "near, within a sentence".
     The exact patterns remain in the deposited script, which is what actually runs.
     """
+    if pattern in TERM_DISPLAY:
+        return TERM_DISPLAY[pattern]
+
     s = pattern
 
     # Negative lookahead is the only construct that changes meaning rather than
@@ -206,14 +226,22 @@ def readable_term(pattern: str) -> str:
     if excl:
         inner = re.sub(r"[\[\]()?\\]", "", excl.group(1))
         # Character classes like [- ] leave stray separators on each alternative.
-        alts = [a.strip(" -_") for a in inner.split("|")]
-        note = " (but not " + " / ".join(a for a in alts if a) + ")"
+        alts = [a.strip(" -_") for a in inner.split("|") if a.strip(" -_")]
+        # The excluded strings are the base term plus each alternative, so print
+        # them in full: "training (but not training data, training set)" rather
+        # than the bare "(but not data / set)", which named no exclusion at all.
+        base = s[:excl.start()].strip()
+        note = " (but not " + ", ".join("%s %s" % (base, a) for a in alts) + ")"
         s = s[:excl.start()] + s[excl.end():]
 
     s = s.replace(r"\b", "")                                # word boundaries
     s = re.sub(r"\[\^\.\]\{0,\d+\}", " ... ", s)            # bounded proximity
     s = s.replace(r"\w*", "").replace(r"\s?", " ")
-    s = re.sub(r"\[sz\]", "s/z", s)                         # British/US spelling
+    # Expand the whole word: "parametris/z" read as an alternation offering a
+    # bare "z", and the reader cannot check a term they cannot reconstruct.
+    s = re.sub(r"(\w*)\[sz\](\w*)",
+               lambda m: "%ss%s / %sz%s" % (m.group(1), m.group(2), m.group(1), m.group(2)),
+               s)                                           # British/US spelling
     s = re.sub(r"\(([^()]*)\)", lambda m: m.group(1).replace("|", " / "), s)
     s = s.replace("-?", "-").replace("?", "")
     s = re.sub(r"\s{2,}", " ", s).strip()
@@ -356,7 +384,8 @@ def build_table(counts, n) -> str:
          rf"publication counts as addressing a theme where the challenge and recommendation "
          rf"text extracted from it matches a term from that theme's list, given in "
          rf"\protect\hyperref[sec:app:coding]{{Supplementary Note~18}}. Themes are not mutually exclusive, so shares sum "
-         rf"to more than 100.}}"
+         rf"to more than 100. Shares are lower bounds: the term list recovers 0.62 of the "
+         rf"themes hand labelling finds, so coverage is understated rather than inflated.}}"
          r"\label{tab:theme_summary}",
          r"\begingroup\small",
          r"\begin{tabularx}{\textwidth}{X r r}", r"\toprule",
@@ -379,8 +408,9 @@ def build_codebook() -> str:
          r"\caption{\textbf{Codebook for thematic coverage.} A publication counts as addressing a "
          r"theme where its extracted challenge and recommendation text matches at least one "
          r"term listed for that theme. Terms match case-insensitively and on word stems, so "
-         r"\texttt{data shar} covers sharing and shared. An ellipsis marks a gap of up to a "
-         r"few words within the same sentence, and a slash separates alternatives. The exact "
+         r"\texttt{data shar} covers sharing and shared. An ellipsis marks a gap within the "
+         r"same sentence, bounded per term at between 20 and 40 characters, and a slash "
+         r"separates alternatives. The exact "
          r"expressions are in the deposited analysis script.}"
          r"\label{tab:theme_codebook}\\"]
     L += header + [r"\endfirsthead",

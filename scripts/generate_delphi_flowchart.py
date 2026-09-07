@@ -172,10 +172,10 @@ draw_box(ax, CX, cy_start, BOX_W_SM, H_SM,
 
 draw_box(ax, CX, cy_r1, BOX_W, H_RND,
          title='Round 1: Internal feedback',
-         subtitle='December 2025 – February 2026  │  N = 6',
+         subtitle='16 December 2025 – 6 February 2026  │  N = 6',
          lines=[
              '17 statements + 1 ranking task + 5 open-ended questions',
-             'Core research team review',
+             'infoXpand consortium members',
              'Written feedback: clarity, relevance, completeness, redundancy',
          ],
          face=C_ROUND, border=C_BROUND, title_color=C_TROUND)
@@ -195,7 +195,7 @@ draw_box(ax, CX, cy_r3, BOX_W, H_RND,
          subtitle='30 March – 20 April 2026  │  N = 18 of 38 invited',
          lines=[
              '42 statements + 3 ranking tasks + 7 open-ended questions',
-             '6-point Likert ratings (1 = strongly disagree, 6 = strongly agree)',
+             '6-point Likert ratings (1 = completely disagree, 6 = completely agree)',
              'Free-text comments per statement',
          ],
          face=C_ROUND, border=C_BROUND, title_color=C_TROUND)
@@ -205,7 +205,7 @@ draw_box(ax, CX, cy_r4, BOX_W, H_RND,
          subtitle='4 – 22 May 2026  │  N = 41 complete',
          lines=[
              '40 statements + 3 ranking tasks + 7 open-ended questions',
-             'Core authors + panel members + external experts',
+             'Panel members + external experts',
              '6-point Likert ratings + free-text feedback per section',
          ],
          face=C_ROUND, border=C_BROUND, title_color=C_TROUND)
