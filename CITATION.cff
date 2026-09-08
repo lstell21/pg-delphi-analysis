@@ -12,7 +12,7 @@ identifiers:
     value: 10.5281/zenodo.22233244
     description: All versions of this software
   - type: doi
-    value: 10.5281/zenodo.22643522
+    value: 10.5281/zenodo.22648869
     description: The version that produced the published results
   - type: doi
     value: 10.5281/zenodo.22232256
