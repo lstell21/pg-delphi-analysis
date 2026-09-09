@@ -192,7 +192,9 @@ statistics on all raters, as reported in the main text, beside the same
 statistics restricted to the %d panellists who completed the round. Quartiles use
 linear interpolation; the top-two share is the percentage of raters choosing 5 or 6,
 which ranges from %.0f\%% to %.0f\%% and still separates statements where median
-and IQR no longer do. No statement changes consensus class, and one median moves
+and IQR no longer do. Shares are given to one decimal here and to the nearest
+whole number in Table~1, so B08 reads 93.5 in this table and 93 there; both are
+43 of 46. No statement changes consensus class, and one median moves
 ($^{*}$ A10, 5.5 to 5).}
 \label{tab:sensitivity}\\
 \toprule
