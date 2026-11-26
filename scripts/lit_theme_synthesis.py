@@ -24,11 +24,17 @@ so any single call can be checked or overruled.
 Do not tune the term lists to reproduce the original percentages. Those came from
 the unreproducible pass and are not ground truth; the hand-labelled subsample is.
 
+--by-period splits the included publications at PERIOD_SPLIT and reports each
+theme's share before and from that year. It writes the per-publication
+assignments and the period table to data/generated/, and a bar chart
+of the shares to figures/.
+
 Usage:
     python scripts/lit_theme_synthesis.py --run <screen.csv>
     python scripts/lit_theme_synthesis.py --run <screen.csv> --audit
     python scripts/lit_theme_synthesis.py --run <screen.csv> --sample-for-labelling 30
     python scripts/lit_theme_synthesis.py --run <screen.csv> --validate labels.csv
+    python scripts/lit_theme_synthesis.py --run <screen.csv> --by-period
 """
 
 import argparse
@@ -37,18 +43,26 @@ import csv
 import random
 import re
 import sys
+import textwrap
 from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 OUT_DIRS = [
     PROJECT_ROOT / "tables",
 ]
+LIT_ANALYSIS_DIR = PROJECT_ROOT / "data" / "generated"
+FIGURES_DIR = PROJECT_ROOT / "figures"
 
 COL_KEY = "Key"
 COL_TITLE = "Title"
+COL_YEAR = "Publication Year"
 COL_DECISION = "Decision"
 COL_STATUS = "Status"
 TEXT_COLS = ["Challenges", "Recommendations"]
+
+# --by-period compares publications from before this year with those from it on.
+PERIOD_SPLIT = 2020
+FIG6_HEIGHT = 3.6   # inches; the width is the manuscript's text block (CH-41)
 
 # A publication counts as addressing a theme on one matched term. Two was tried
 # and left 46% of the corpus unassigned: the extractions are terse (median ~900
@@ -374,6 +388,104 @@ def validate(recs, labels_path: Path):
     print(f"    Cohen's kappa       {kappa:.2f}  (chance agreement {pe:.2f})")
 
 
+# ── Themes by period ──────────────────────────────────────────────────────────
+def year_of(rec) -> int:
+    raw = (rec.get(COL_YEAR) or "").strip()
+    if not raw[:4].isdigit():
+        raise SystemExit(f"error: no publication year for {ident_of(rec)!r}: {raw!r}")
+    return int(raw[:4])
+
+
+def by_period(recs, data_dir: Path, fig_dir: Path) -> list:
+    """Each theme's share before PERIOD_SPLIT and from it on.
+
+    Writes theme_assignments.csv (one row per publication) and
+    theme_by_period.csv (one row per theme, by overall share) to data_dir, and
+    the figure to fig_dir. Returns the period table rows.
+    """
+    pre, post = f"pre{PERIOD_SPLIT}", f"from{PERIOD_SPLIT}"
+    pubs = [(r, year_of(r), set(assign(r))) for r in recs]
+    groups = {"all": pubs,
+              pre: [p for p in pubs if p[1] < PERIOD_SPLIT],
+              post: [p for p in pubs if p[1] >= PERIOD_SPLIT]}
+
+    data_dir.mkdir(parents=True, exist_ok=True)
+    with (data_dir / "theme_assignments.csv").open("w", encoding="utf-8", newline="") as fh:
+        w = csv.writer(fh)
+        w.writerow([COL_KEY, COL_TITLE, COL_YEAR, "period"] + THEME_KEYS)
+        for r, year, themes in pubs:
+            w.writerow([r.get(COL_KEY, ""), r.get(COL_TITLE, ""), year,
+                        pre if year < PERIOD_SPLIT else post]
+                       + [int(k in themes) for k in THEME_KEYS])
+
+    rows = []
+    for key, label, _g in THEMES:
+        row = {"theme_key": key, "theme": label}
+        for name, group in groups.items():
+            n = sum(1 for p in group if key in p[2])
+            row[f"{name}_n"] = n
+            row[f"{name}_pct"] = round(100 * n / len(group), 1)
+            row[f"{name}_total"] = len(group)
+        rows.append(row)
+    rows.sort(key=lambda r: -r["all_n"])
+    with (data_dir / "theme_by_period.csv").open("w", encoding="utf-8", newline="") as fh:
+        w = csv.DictWriter(fh, fieldnames=list(rows[0]))
+        w.writeheader()
+        w.writerows(rows)
+
+    period_figure(rows, len(groups[pre]), len(groups[post]), fig_dir)
+    return rows
+
+
+def period_figure(rows, n_pre: int, n_post: int, fig_dir: Path) -> Path:
+    """Horizontal bars, two per theme, largest overall share at the top."""
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    from matplotlib.patches import Patch
+    from utils import figstyle
+    figstyle.apply()
+
+    pre, post = f"pre{PERIOD_SPLIT}", f"from{PERIOD_SPLIT}"
+    # One hue, light to dark, because the two periods are ordered in time; the
+    # earlier period is also hatched, so the two read apart in grey print.
+    colours = {pre: "#86b6ef", post: "#1c5cab"}
+    hatches = {pre: "////", post: None}
+    bar, gap = 0.38, 0.02
+    # Drawn at the manuscript's text width and included at natural size (CH-41).
+    fig, ax = plt.subplots(figsize=(figstyle.TEXT_WIDTH_IN, FIG6_HEIGHT))
+    ys = list(range(len(rows), 0, -1))
+    with matplotlib.rc_context({"hatch.color": "white", "hatch.linewidth": 0.6}):
+        for y, row in zip(ys, rows):
+            for period, offset in ((pre, bar / 2 + gap / 2), (post, -(bar / 2 + gap / 2))):
+                pct = row[f"{period}_pct"]
+                ax.barh(y + offset, pct, height=bar, color=colours[period],
+                        hatch=hatches[period], zorder=2)
+                ax.text(pct + 0.8, y + offset, f"{pct:.0f}%", va="center", color="#333333")
+        ax.set_yticks(ys)
+        ax.set_yticklabels([textwrap.fill(r["theme"], 30) for r in rows])
+        ax.set_xlabel("Publications addressing the theme (%)")
+        ax.set_xlim(0, 75)
+        ax.grid(axis="x", color="#d0d0d0", lw=0.5, zorder=0)
+        for side in ("top", "right"):
+            ax.spines[side].set_visible(False)
+        ax.legend(handles=[Patch(facecolor=colours[pre], hatch=hatches[pre],
+                                 label=f"Before {PERIOD_SPLIT} (n = {n_pre})"),
+                           Patch(facecolor=colours[post], label=f"{PERIOD_SPLIT} onwards (n = {n_post})")],
+                  loc="lower right", frameon=False)
+        fig.tight_layout(pad=0.3)
+
+        fig_dir.mkdir(parents=True, exist_ok=True)
+        out = fig_dir / "theme_prevalence_by_period.pdf"
+        # CreationDate=None keeps the PDF byte-identical between runs on unchanged
+        # data, as in r4_latex_tables.build_figure. The PNG is for the Word export.
+        # No tight bounding box: the file keeps the size it was drawn at.
+        fig.savefig(out, metadata={"CreationDate": None})
+        fig.savefig(out.with_suffix(".png"), dpi=200)
+    plt.close(fig)
+    return out
+
+
 # ── Output ────────────────────────────────────────────────────────────────────
 
 def build_table(counts, n) -> str:
@@ -383,9 +495,9 @@ def build_table(counts, n) -> str:
          rf"\caption{{\textbf{{Theme coverage across the reviewed literature.}} Coverage of "rf"the eight themes across the {n} included publications. A "
          rf"publication counts as addressing a theme where the challenge and recommendation "
          rf"text extracted from it matches a term from that theme's list, given in "
-         rf"\protect\hyperref[sec:app:coding]{{Supplementary Note~18}}. Themes are not mutually exclusive, so shares sum "
+         rf"Supplementary Note~\ref{{sec:app:coding}}. Themes are not mutually exclusive, so shares sum "
          rf"to more than 100. Shares are lower bounds: the term list recovers 0.62 of the "
-         rf"themes hand labelling finds, so coverage is understated rather than inflated.}}"
+         rf"themes hand labelling finds, so coverage is understated, not inflated.}}"
          r"\label{tab:theme_summary}",
          r"\begingroup\small",
          r"\begin{tabularx}{\textwidth}{X r r}", r"\toprule",
@@ -444,6 +556,8 @@ def main() -> int:
                     help="earlier sample to exclude, so a holdout stays held out (repeatable)")
     ap.add_argument("--validate", type=Path, metavar="LABELS",
                     help="score the codebook against a hand-labelled file")
+    ap.add_argument("--by-period", action="store_true",
+                    help=f"theme shares before {PERIOD_SPLIT} and from it on, with the figure")
     ap.add_argument("--out-dir", type=Path, action="append")
     ap.add_argument("--check-only", action="store_true")
     args = ap.parse_args()
@@ -460,6 +574,18 @@ def main() -> int:
 
     if args.validate:
         validate(recs, args.validate)
+        return 0
+
+    if args.by_period:
+        rows = by_period(recs, LIT_ANALYSIS_DIR, FIGURES_DIR)
+        pre, post = f"pre{PERIOD_SPLIT}", f"from{PERIOD_SPLIT}"
+        print(f"    before {PERIOD_SPLIT}: {rows[0][pre + '_total']}, "
+              f"{PERIOD_SPLIT} onwards: {rows[0][post + '_total']}\n")
+        for r in rows:
+            print(f"    {r['all_pct']:5.1f}%  {r[pre + '_pct']:5.1f}%  {r[post + '_pct']:5.1f}%  {r['theme']}")
+        print(f"\n  wrote {LIT_ANALYSIS_DIR / 'theme_assignments.csv'}")
+        print(f"  wrote {LIT_ANALYSIS_DIR / 'theme_by_period.csv'}")
+        print(f"  wrote {FIGURES_DIR / 'theme_prevalence_by_period.pdf'} (+ .png)")
         return 0
 
     counts = collections.Counter()

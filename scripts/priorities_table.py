@@ -21,7 +21,7 @@ The panel did express importance directly, but in a separate instrument: the
 Section E ranking task, in which panelists ranked seven preparedness measures
 across three phases (see ``r4_statements.py``). Those seven do not map one to
 one onto these ten, so the ranking task is reported in the caption and, in
-full, in Supplementary Table 7 of Supplementary Note 8 rather than used to
+full, in its own Supplementary Table (tab:rankings) rather than used to
 order this table.
 
 Priorities are therefore listed alphabetically within each group, and the
@@ -190,26 +190,23 @@ CAPTION = (
     # Raw string: a plain "\textbf" would put a literal tab in the caption,
     # which pdflatex swallows silently and prints "extbf{...}".
     #
-    # "Supplementary Table~7" is written out rather than \ref'd on purpose. The
-    # Supplementary Information is a separate LaTeX document (SI_main.tex), so
-    # its labels are not in this document's .aux and a \ref would typeset "??".
-    # Every other cross-document pointer in the manuscript is spelled out the
-    # same way. tab:rankings is Table 6: it is the sixth table environment in
-    # SI_notes.tex, after tab:revision_mapping, which is Table 5. Renumber here
-    # if a table is added or moved before it.
-    r"\textbf{Ten priorities for the inter-pandemic period.} Priorities "
-    "synthesised from the consensus recommendations and the review, grouped by "
+    # The rankings table is cited by label, \ref{SI-tab:rankings}. The
+    # Supplementary Information is a separate LaTeX document (SI_main.tex), and
+    # xr-hyper reads its labels from SI_main.aux under the SI- prefix, so the
+    # number follows the SI's order and is never typed here.
+    r"\textbf{Ten priorities for the inter-pandemic period.} The study team's "
+    "synthesis of the consensus statements and the review, grouped by "
     "what each demands and listed alphabetically within each group. The panel "
     "rated neither the priorities nor their relative importance, so no order "
-    "here implies any: agreement is not importance, since a statement can "
-    "command consensus yet matter little for preparedness. The panel did rank "
+    "here implies any. "
+    "The panel did rank "
     "seven preparedness measures across three phases, and those do not "
-    "correspond one to one with these ten (Supplementary Table~7). "
+    "correspond one to one with these ten (Supplementary Table~\\ref{SI-tab:rankings}). "
     "``Must act'' uses M, A, and P as in Table~\\ref{tab:recommendations_main}, "
     "and is the union of the parties named for the supporting statements. It "
-    "is our judgement rather than the panel\'s. Every priority requires "
-    "modelling groups to act, but only two of the ten can be delivered by a "
-    "modelling group alone. A statement can support more than one priority: "
+    "is the study team\'s judgement, not the panel\'s. "
+    ""
+    "A statement can support more than one priority: "
     "C02 and B08 each appear in two rows."
 )
 
@@ -237,8 +234,9 @@ def read_stats_from_tex(tables_dir: Path) -> dict:
     """
     src = (tables_dir / "round4_consensus_table.tex").read_text(encoding="utf-8")
     out = {}
+    # The R3 cell may carry a note marker, such as the pooled-figure $^{\ddagger}$.
     for m in re.finditer(
-        r"^([ABCD]\d\d) & .*? & [\d.]+ \([\d.]+\) & ([\d.]+) \(([\d.]+)\) & (\d+) &",
+        r"^([ABCD]\d\d) & .*? & [\d.]+ \([\d.]+\)(?:\$\^\{\\\w+\}\$)? & ([\d.]+) \(([\d.]+)\) & (\d+) &",
         src, re.M,
     ):
         out[m.group(1)] = (float(m.group(2)), float(m.group(3)), int(m.group(4)))
@@ -335,7 +333,7 @@ def build_table(groups: list) -> str:
     # xltabular, which would give a breakable X column, is not in the TeX
     # distribution this manuscript is built with.
     header = (r"Priority & What it asks for & Must act & Supporting consensus "
-              r"recommendations (topic) \\")
+              r"statements (topic) \\")
     return "\n".join([
         HEADER,
         r"\begingroup\footnotesize",

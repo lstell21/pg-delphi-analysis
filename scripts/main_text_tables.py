@@ -23,7 +23,14 @@
    screening export directly and reuses ``lit_theme_synthesis`` for the theme
    assignment, so the two cannot drift apart.
 
-Both are written to tables/. Run: python scripts/main_text_tables.py
+3. ``Supplementary_Data_1.csv`` -- the same 135 publications and columns as
+   plain text, which the Supplementary Information cites as Supplementary Data
+   1 in place of the table (CH-20). It goes to
+   supplementary_data/, in UTF-8 with a byte-order mark.
+   ``included_studies.tex`` is still written, as an archive of the former
+   table, but no longer set in the SI.
+
+Both tables are written to tables/. Run: python scripts/main_text_tables.py
 """
 
 from __future__ import annotations
@@ -38,6 +45,7 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 OUT_DIRS = [
     PROJECT_ROOT / "tables",
 ]
+SUPPLEMENTARY_DATA_DIR = PROJECT_ROOT / "supplementary_data"
 LITERATURE_CSV = PROJECT_ROOT / "data" / "literature" / "articles-full-screen-results.csv"
 CONSENSUS_STATS_JSON = (PROJECT_ROOT / "data" / "generated"
                         / "consensus_stats.json")
@@ -66,7 +74,7 @@ import r4_statements as r4s  # noqa: E402
 #
 # Confirmed against the Round 4 statement text on 2026-08-06, replacing a first
 # pass that had followed the partial mapping in "Recommendations by audience"
-# (\ref{sec:app:by_audience}). That pass mislabeled six statements:
+# (\ref{sec:app:by_audience}). That pass mislabeled seven statements:
 #   A04  M, P -> M     policymakers appear only as recipients of communication
 #   C01  M, P -> M     statement never mentions policymakers
 #   C02  M, P -> M     statement never mentions policymakers
@@ -81,9 +89,17 @@ import r4_statements as r4s  # noqa: E402
 # not make modellers an actor, since the statement is about surveillance design.
 # C09 keeps P: it is the one statement placing a duty on policymakers, who
 # "should have a foundational understanding of model uncertainty."
-AUDIENCE = {
+#
+# A08, the consensus principle, places a duty on no one, so it carries no label
+# (Leonard, 5 November 2026) and is not a key here. Table 1 shows "--" for it,
+# and every count over these labels covers the 39 recommendations.
+#
+# These are the study team's labels as coded before the independent recoding.
+# mustact_recode.py compares the coders with them, so they stay as they were;
+# AUDIENCE below is what the tables print.
+STUDY_TEAM_AUDIENCE = {
     "A01": "M",      "A02": "M",      "A03": "M",      "A04": "M",
-    "A05": "M",      "A06": "M",      "A07": "M",      "A08": "M",
+    "A05": "M",      "A06": "M",      "A07": "M",
     "A09": "M",      "A10": "M",      "A11": "M",      "A12": "M, A",
     "A13": "M",
     "B01": "M, A", "B02": "M, A", "B03": "A",  "B04": "A",
@@ -95,6 +111,29 @@ AUDIENCE = {
     "D05": "M, A",   "D06": "M",      "D07": "M",      "D08": "A",
     "D09": "A",
 }
+
+# The labels the majority rule changed after the independent recoding: six
+# co-authors (C1 to C6), scored by mustact_recode.py on 11 November 2026
+# (data/analysis/mustact/agreement.json): B02 -A, C04 -A, D01 +M, D02 +M,
+# D05 -A, D08 -A +P, which is 7 labels in 6 statements. mustact_recode.py score
+# reports whether these still match a new scoring.
+RECODING_CHANGES = {
+    "B02": "M", "C04": "M", "D01": "M, A", "D02": "M, A", "D05": "M", "D08": "P",
+}
+# The final labels, which Table 1, Table 3 and every count use.
+AUDIENCE = {**STUDY_TEAM_AUDIENCE, **RECODING_CHANGES}
+
+# ── Statement type ─────────────────────────────────────────────────────────────
+# Decided on 2-3 November 2026 for the Communications Health revision. A08 is a
+# consensus principle: it states a difficulty and asks no one to act. D07 and D08
+# are recommendations that open with a premise. Every other statement, A02
+# included, is a recommendation, which makes 39 recommendations and 1 principle.
+PRINCIPLE = "principle"
+PREMISE_FIRST = "recommendation opening with a premise"
+TYPE = {sid: "recommendation" for sid in sorted([*AUDIENCE, "A08"])}
+TYPE.update({"A08": PRINCIPLE, "D07": PREMISE_FIRST, "D08": PREMISE_FIRST})
+# Marker set after the statement text in Table 1, explained in the table note.
+TYPE_MARK = {PRINCIPLE: r"$^{\ast}$", PREMISE_FIRST: r"$^{\dagger}$"}
 
 SECTION_TITLES = {
     "A": "Model design and complexity",
@@ -124,8 +163,10 @@ SAFE_EXTRA = "–—‘’“”"
 #     mangled round trip of the LaTeX "\ldots". The pattern also accepts the
 #     intact ellipsis and the "..." that NFKC leaves behind, so it holds
 #     whichever form a fresh export delivers.
-#   Espinosa et al. (2024) carries a bracketed Spanish title whose spaces the
-#     export dropped. Restored word for word; no wording is changed.
+#   Espinosa et al. (2024a) carries, after its English title, the original
+#     Spanish title in brackets with its spaces dropped. The bibliography gives
+#     only the English title, so the Spanish one and the separator before it
+#     are removed.
 #   Erzen et al. (2020) arrives shouted in full capitals and with "have" typed
 #     twice. Restored to the title as published; no wording is changed beyond
 #     the stutter.
@@ -136,10 +177,9 @@ TITLE_FIXES = [
     (re.compile(r"(role of uncertainty is)(?:\u0142dots|\u2026|\.\.\.)(uncertain)",
                 re.I),
      r"\1\\ldots{}\2"),
-    (re.compile(r"\[Lautilidaddelosmodelosmatem\u00e1ticosenepidemiolog\u00eda"
+    (re.compile(r";\s*\[Lautilidaddelosmodelosmatem\u00e1ticosenepidemiolog\u00eda"
                 r"\s*paralatomadedecisionesensaludp\u00fablica\]"),
-     "[La utilidad de los modelos matem\u00e1ticos en epidemiolog\u00eda "
-     "para la toma de decisiones en salud p\u00fablica]"),
+     ""),
 ]
 
 
@@ -198,8 +238,9 @@ def read_round4_stats(tables_dir: Path) -> dict:
     """{id: (median, iqr, n, status)} from the auto-generated Round 4 table."""
     src = (tables_dir / "round4_consensus_table.tex").read_text(encoding="utf-8")
     out = {}
+    # The R3 cell may carry a note marker, such as the pooled-figure $^{\ddagger}$.
     for m in re.finditer(
-        r"^([ABCD]\d\d) & .*? & [\d.]+ \([\d.]+\) & ([\d.]+) \(([\d.]+)\) & (\d+) & (\w+)",
+        r"^([ABCD]\d\d) & .*? & [\d.]+ \([\d.]+\)(?:\$\^\{\\\w+\}\$)? & ([\d.]+) \(([\d.]+)\) & (\d+) & (\w+)",
         src, re.M,
     ):
         out[m.group(1)] = (m.group(2), m.group(3), m.group(4), m.group(5))
@@ -233,8 +274,9 @@ def build_recommendations_table(statements: dict, stats: dict, endorse: dict) ->
         for i in ids:
             median, iqr, n, status = stats.get(i, ("--", "--", "--", "--"))
             pct = endorse.get(i)
+            text = tex_escape(statements[i]) + TYPE_MARK.get(TYPE[i], "")
             rows.append(r"%s & %s & %s & %s & %s & %s & %s \\"
-                        % (i, tex_escape(statements[i]), AUDIENCE.get(i, "--"),
+                        % (i, text, AUDIENCE.get(i, "--"),
                            median, iqr, "--" if pct is None else "%d" % pct, n))
             rows.append(r"\addlinespace[3pt]")
         rows.append(r"\addlinespace[4pt]")
@@ -249,7 +291,7 @@ def build_recommendations_table(statements: dict, stats: dict, endorse: dict) ->
     # The name sits on two lines and the unit on the second, so the cell is only
     # as wide as "share (%)". On one line it overran the margin.
     top2 = r"\begin{tabular}[b]{@{}c@{}}Top-two\\share (\%)\end{tabular}"
-    header = (r"ID & Recommendation & Must act & Median & IQR & "
+    header = (r"ID & Statement & Must act & Median & IQR & "
               + top2 + r" & $n$ \\")
     # Seven columns, so the six internal gaps cost 12pt each at the default
     # \tabcolsep. Naming the top-two share column needs about 10pt more than
@@ -258,17 +300,17 @@ def build_recommendations_table(statements: dict, stats: dict, endorse: dict) ->
     return r"""%% Auto-generated by scripts/main_text_tables.py -- do not edit by hand.
 \begingroup\footnotesize\setlength{\tabcolsep}{5pt}
 \begin{longtable}{@{}l >{\raggedright\arraybackslash}p{0.43\textwidth} l c c c c@{}}
-\caption{\textbf{The 40 consensus recommendations.} Statements appear in the
-wording the panel rated, which keeps US spelling. Must act is our judgement, not
+\caption{\textbf{The 40 consensus statements.} Statements appear in the
+wording the panel rated, which keeps US spelling. Must act is the study team's judgement, not
 the panel's: M modelling groups; A public health agencies, including funders
 and providers of national data infrastructure; P policy advisors (Supplementary
-Note~10). Ratings run from 1 (completely disagree) to 6 (completely agree), and
-all 40 met the consensus criterion of IQR~$\leq$~1. The top-two share is the
-percentage of raters choosing 5 or 6, which still separates statements once the
-median saturates. FAIR4RS, in B02, extends the FAIR principles to research
-software. $n$ varies because partial responses were retained and panellists could
-answer ``Not qualified to respond'' on any statement. Supplementary Tables~4
-and~5 give the Round~3 comparison and a completers-only reanalysis.}
+Note~\ref{SI-sec:app:by_audience}). A08, the consensus principle, carries no label. Ratings run from 1 (completely disagree) to 6 (completely agree), and
+the consensus criterion was an interquartile range (IQR) of at most 1. The top-two share is the
+percentage of raters choosing 5 or 6.
+FAIR4RS, in B02, extends the FAIR (findable, accessible, interoperable, and reusable) principles to research
+software. In C07 and C08, API is application programming interface, CSV is comma-separated values, and JSON is JavaScript Object Notation. ID is the statement identifier. $^{\ast}$Consensus principle, which records a shared reading of a problem and prescribes no action (Methods). $^{\dagger}$Recommendation that opens with a premise and then prescribes an action. $n$ is the number of ratings, which varies because partial responses were retained and panellists could
+answer ``Not qualified to respond'' on any statement. Supplementary Data~2
+and Supplementary Table~\ref{SI-tab:sensitivity} give the Round~3 comparison and a completers-only reanalysis.}
 \label{tab:recommendations_main}\\
 \toprule
 %s
@@ -289,7 +331,7 @@ and~5 give the Round~3 comparison and a completers-only reanalysis.}
 """ % (header, header, body)
 
 
-# ── Table 2: the 135 included publications ────────────────────────────────────
+# ── The 135 included publications (archive; Supplementary Data 1) ─────────────
 
 THEME_SHORT = {
     "data_governance": "Data",
@@ -370,15 +412,47 @@ def breakable_slash(cell: str) -> str:
     return cell.replace("/", r"/\allowbreak ")
 
 
-def build_studies_table(recs: list) -> str:
+def ordered_studies(recs: list) -> list:
+    """(record, first author, year) in table order, by first author and year,
+    with shared years suffixed. The table and Supplementary Data 1 both use it."""
     ordered = sorted(recs, key=lambda r: (first_author(r.get("Author", "")).lower(),
                                           r.get("Publication Year", "")))
     authors = [first_author(r.get("Author", "")) for r in ordered]
     years = [(r.get("Publication Year") or "").strip() or "n.d." for r in ordered]
     years = disambiguate_years(list(zip(authors, years)))
+    return list(zip(ordered, authors, years))
 
+
+STUDIES_HEADER = ["First author", "Year", "Title", "Type", "Themes"]
+
+
+def build_studies_rows(recs: list) -> list:
+    """Supplementary Data 1: the table's columns as plain text. The same title
+    repairs apply, with the one ellipsis TITLE_FIXES writes as LaTeX restored,
+    and an en dash marks a missing type or no matched theme, as the table's
+    printed dash does."""
     rows = []
-    for rec, author, year in zip(ordered, authors, years):
+    for rec, author, year in ordered_studies(recs):
+        themes = [THEME_SHORT.get(k, k) for k in lts.assign(rec)]
+        title = fix_title(sanitize((rec.get("Title") or "").strip())).replace(r"\ldots{}", "…")
+        rows.append([sanitize(author), sanitize(year), title,
+                     sanitize((rec.get("Type") or "").strip()) or "–",
+                     ", ".join(sorted(themes)) or "–"])
+    return rows
+
+
+def write_csv(path: Path, header: list, rows: list) -> None:
+    """UTF-8 with a byte-order mark, so that Excel shows accented names."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("w", encoding="utf-8-sig", newline="") as fh:
+        writer = csv.writer(fh)
+        writer.writerow(header)
+        writer.writerows(rows)
+
+
+def build_studies_table(recs: list) -> str:
+    rows = []
+    for rec, author, year in ordered_studies(recs):
         themes = [THEME_SHORT.get(k, k) for k in lts.assign(rec)]
         rows.append(r"%s & %s & %s & %s & %s \\" % (
             tex_escape(author),
@@ -390,12 +464,13 @@ def build_studies_table(recs: list) -> str:
         rows.append(r"\addlinespace[1pt]")
     body = "\n".join(rows).rstrip()
     return r"""%% Auto-generated by scripts/main_text_tables.py -- do not edit by hand.
+%% Not set in the SI. Kept as an archive of the former Supplementary Table 2; Supplementary Data 1 carries the content.
 \begingroup\scriptsize
 \begin{longtable}{@{}>{\raggedright\arraybackslash}p{0.17\textwidth} l >{\raggedright\arraybackslash}p{0.29\textwidth} >{\raggedright\arraybackslash}p{0.13\textwidth} >{\raggedright\arraybackslash}p{0.19\textwidth}@{}}
 \caption{\textbf{Publications included in the systematic review.} The %d
 publications included, with the
 publication type recorded during screening and the themes the term-based
-codebook (\protect\hyperref[sec:app:coding]{Supplementary Note~18}) assigns from the extracted challenge and
+codebook (Supplementary Note~\ref{sec:app:coding}) assigns from the extracted challenge and
 recommendation text. Themes are not mutually exclusive. A dash means the
 codebook matched no theme term, not that the publication addresses none.}
 \label{tab:included_studies}\\
@@ -443,6 +518,9 @@ def main() -> None:
         (out_dir / "included_studies.tex").write_text(studies_table, encoding="utf-8")
         print(f"wrote {out_dir / 'recommendations_main.tex'}")
         print(f"wrote {out_dir / 'included_studies.tex'}")
+    data_1 = SUPPLEMENTARY_DATA_DIR / "Supplementary_Data_1.csv"
+    write_csv(data_1, STUDIES_HEADER, build_studies_rows(recs))
+    print(f"wrote {data_1}")
 
 
 if __name__ == "__main__":

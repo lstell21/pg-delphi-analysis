@@ -20,7 +20,7 @@ Quartiles use linear interpolation (numpy's default, equivalent to R quantile
 type 7), matching r4_consensus_stats.py.
 
 Outputs data/generated/sensitivity.json and sensitivity.csv, and
-tables/sensitivity.tex (Supplementary Table 5).
+tables/sensitivity.tex (tab:sensitivity).
 """
 import csv
 import json
@@ -190,9 +190,9 @@ def build_table(result: dict) -> str:
 \caption{\textbf{Completers-only sensitivity analysis and the top-two share.} Round~4
 statistics on all raters, as reported in the main text, beside the same
 statistics restricted to the %d panellists who completed the round. Quartiles use
-linear interpolation; the top-two share is the percentage of raters choosing 5 or 6,
+linear interpolation. The top-two share is the percentage of raters choosing 5 or 6,
 which ranges from %.0f\%% to %.0f\%% and still separates statements where median
-and IQR no longer do. No statement changes consensus class, and one median moves
+and interquartile range (IQR) no longer do. No statement changes consensus class, and one median moves
 ($^{*}$ A10, 5.5 to 5).}
 \label{tab:sensitivity}\\
 \toprule

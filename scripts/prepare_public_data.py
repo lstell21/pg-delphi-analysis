@@ -46,6 +46,8 @@ COPIES = [
     ("literature/validation/theme_labels.csv", "literature/theme_labels_tuning.csv"),
     ("literature/validation/theme_labels_holdout.csv", "literature/theme_labels_holdout.csv"),
     ("literature/validation/theme_labels_holdout_clean.csv", "literature/theme_labels_holdout_clean.csv"),
+    # The PRISMA counts behind Fig. 2, written by generate_prisma_flow.py --derive.
+    ("data/review/prisma_counts.csv", "literature/prisma_counts.csv"),
 ]
 
 # run over every output as a safety net
