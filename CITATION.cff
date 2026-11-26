@@ -16,6 +16,9 @@ identifiers:
   - type: doi
     value: 10.5281/zenodo.22232255
     description: The data this software reads, all versions
+  - type: doi
+    value: 10.5281/zenodo.24562176
+    description: This version, v1.2.0
 abstract: >-
   Analysis code for an expert Delphi study on infectious disease
   modelling for pandemic preparedness. Computes the consensus

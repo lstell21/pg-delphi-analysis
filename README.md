@@ -166,7 +166,7 @@ Code here is MIT, see [LICENSE](LICENSE). The data deposit is CC BY-SA 4.0 excep
 for passages quoted from the screened publications, which its own README explains.
 
 This repository is archived at [10.5281/zenodo.22233244](https://doi.org/10.5281/zenodo.22233244), which always
-resolves to the newest release. Version v1.2.0 produced the results in the paper.
+resolves to the newest release. Version v1.2.0, archived at [10.5281/zenodo.24562176](https://doi.org/10.5281/zenodo.24562176), produced the results in the paper.
 Cite the paper for the findings, this DOI for the code, and
 [10.5281/zenodo.22232255](https://doi.org/10.5281/zenodo.22232255) for the data.
 See [CITATION.cff](CITATION.cff).
